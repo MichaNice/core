@@ -21,10 +21,6 @@
 
 namespace OCA\DAV\Files;
 
-use OC\Files\Storage\Local;
-use OCP\Files\ForbiddenException;
-use Test\HookHelper;
-use OC\Files\Filesystem;
 use OCP\Lock\ILockingProvider;
 
 /**

@@ -31,10 +31,6 @@ use OC\Files\FileInfo;
 use Sabre\DAV\Exception\BadRequest;
 use Sabre\DAV\Exception;
 use OCA\DAV\Connector\Sabre\Exception\Forbidden;
-use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
-use OCA\DAV\Connector\Sabre\Exception\FileLocked;
-use OCP\Files\ForbiddenException;
-use OCP\Lock\LockedException;
 
 /**
  * This plugin is responsible for interconnecting three components of the OC server:
@@ -149,7 +145,6 @@ class BundlingPlugin extends ServerPlugin {
 	/**
 	 * Check multipart headers.
 	 *
-	 * @throws /Sabre\DAV\Exception\BadRequest
 	 * @throws /Sabre\DAV\Exception\Forbidden
 	 * @return void
 	 */
@@ -166,9 +161,9 @@ class BundlingPlugin extends ServerPlugin {
 		foreach ($headers as $header) {
 			$value = $this->request->getHeader($header);
 			if ($value === null) {
-				throw new BadRequest(sprintf('%s header is needed', $header));
+				throw new Forbidden(sprintf('%s header is needed', $header));
 			} elseif (!is_int($value) && empty($value)) {
-				throw new BadRequest(sprintf('%s header must not be empty', $header));
+				throw new Forbidden(sprintf('%s header must not be empty', $header));
 			}
 		}
 
@@ -180,7 +175,7 @@ class BundlingPlugin extends ServerPlugin {
 		$contentType = trim($contentParts[0]);
 		$expectedContentType = 'multipart/related';
 		if ($contentType != $expectedContentType) {
-			throw new BadRequest(sprintf(
+			throw new Forbidden(sprintf(
 				'Content-Type must be %s',
 				$expectedContentType
 			));
@@ -190,7 +185,7 @@ class BundlingPlugin extends ServerPlugin {
 		$boundaryPart = trim($contentParts[1]);
 		$shouldStart = 'boundary=';
 		if (substr($boundaryPart, 0, strlen($shouldStart)) != $shouldStart) {
-			throw new BadRequest('Boundary is not set');
+			throw new Forbidden('Boundary is not set');
 		}
 		$boundary = substr($boundaryPart, strlen($shouldStart));
 		if (substr($boundary, 0, 1) == '"' && substr($boundary, -1) == '"') {
@@ -202,7 +197,7 @@ class BundlingPlugin extends ServerPlugin {
 	/**
 	 * Parses multipart contents and send appropriete response
 	 *
-	 * @throws \Sabre\DAV\Exception\BadRequest
+	 * @throws \Sabre\DAV\Exception\Forbidden
 	 *
 	 * @return array $multipleRequestsData
 	 */
@@ -269,7 +264,7 @@ class BundlingPlugin extends ServerPlugin {
 				$multipleRequestsData[$contentID]['response'] = null;
 			}
 		} catch (\Exception $e) {
-			throw new BadRequest($e->getMessage());
+			throw new Forbidden($e->getMessage());
 		}
 		return $multipleRequestsData;
 	}
